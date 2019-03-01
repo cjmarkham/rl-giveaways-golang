@@ -1,0 +1,15 @@
+{{ define "title" }}{{ .Title }}{{ end }}
+
+{{ define "content" }}
+  <div class="container">
+    <h1 class="text-center">{{ .Title }}</h1>
+    <div class="row">
+      {{ range $element := .Items }}
+        <div class="col-md-3 text-center">
+          <img src="{{ .Image_url }}" alt="{{ .Name }}" />
+          <h5>{{ .Name }}</h5>
+        </div>
+      {{ end }}
+    </div>
+  </div>
+{{ end }}

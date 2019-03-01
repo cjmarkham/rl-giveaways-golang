@@ -8,6 +8,7 @@ import (
   "database/sql"
   _ "github.com/lib/pq"
   "strings"
+  "github.com/rl-giveaways/logger"
 )
 
 var rend *renderer.Render
@@ -20,9 +21,7 @@ func init () {
 
   var err error
   db, err = sql.Open("postgres", connStr)
-  if err != nil {
-    log.Fatal(err)
-  }
+  logger.Error(err)
 }
 
 func main () {
@@ -39,9 +38,7 @@ func Index (w http.ResponseWriter, r *http.Request) {
   tpls := []string{"view/layout.html", "view/index.html"}
 
   err := rend.Template(w, http.StatusOK, tpls, nil)
-  if err != nil {
-    http.Error(w, err.Error(), http.StatusInternalServerError)
-  }
+  logger.Error(err)
 }
 
 func Category (w http.ResponseWriter, r *http.Request) {
@@ -49,9 +46,8 @@ func Category (w http.ResponseWriter, r *http.Request) {
   category := vars["category"]
 
   rows, err := db.Query("SELECT name, painted, certified, image_url FROM items WHERE category=$1", category)
-  if err != nil {
-    http.Error(w, err.Error(), http.StatusInternalServerError)
-  }
+  logger.Error(err)
+
   defer rows.Close()
 
   type row struct {
@@ -66,15 +62,11 @@ func Category (w http.ResponseWriter, r *http.Request) {
   for rows.Next() {
     var r row
     err := rows.Scan(&r.Name, &r.Painted, &r.Certified, &r.Image_url)
-    if err != nil {
-      log.Fatal(err)
-    }
+    logger.Error(err)
+
     items = append(items, r)
   }
-  err = rows.Err()
-  if err != nil {
-    log.Fatal(err)
-  }
+  logger.Error(rows.Err())
 
   tpls := []string{"view/layout.html", "view/items.html"}
 
@@ -83,8 +75,6 @@ func Category (w http.ResponseWriter, r *http.Request) {
     Items []row
   }{ strings.Title(category), items }
 
-  tplErr := rend.Template(w, http.StatusOK, tpls, variables)
-  if tplErr != nil {
-    http.Error(w, tplErr.Error(), http.StatusInternalServerError)
-  }
+  err = rend.Template(w, http.StatusOK, tpls, variables)
+  logger.Error(err)
 }
